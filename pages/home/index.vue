@@ -14,66 +14,103 @@
         <div class="col-md-9">
           <div class="feed-toggle">
             <ul class="nav nav-pills outline-active">
-              <li class="nav-item">
-                <a class="nav-link disabled" href="">Your Feed</a>
+              <li class="nav-item" v-if="user">
+                <nuxt-link exact class="nav-link" :class="{active: tab === 'your_feed'}" :to="{
+                  name: 'home',
+                  query: {
+                    tab: 'your_feed'
+                  }
+                }">Your Feed</nuxt-link>
               </li>
               <li class="nav-item">
-                <a class="nav-link active" href="">Global Feed</a>
+                <nuxt-link exact class="nav-link" :class="{
+                  active: tab === 'global_feed'
+                }" :to="{ name: 'home'}">Global Feed</nuxt-link>
+              </li>
+              <li class="nav-item" v-if="tag">
+                <nuxt-link exact class="nav-link" :class="{active: tab === 'tag'}" :to="{
+                  name: 'home',
+                  query: {
+                    tab: 'tag',
+                    tag
+                  }
+                }">{{ tag }}</nuxt-link>
               </li>
             </ul>
           </div>
   
-          <div class="article-preview">
+          <div class="article-preview" v-for="article in articles" :key="article.slug">
             <div class="article-meta">
-              <a href="profile.html"><img src="http://i.imgur.com/Qr71crq.jpg" /></a>
+              <nuxt-link :to="{ 
+                name: 'profile', 
+                params: { 
+                  username: article.author.username 
+                }
+              }">
+                <img :src="article.author.image" />
+              </nuxt-link>
               <div class="info">
-                <a href="" class="author">Eric Simons</a>
-                <span class="date">January 20th</span>
+                <nuxt-link :to="{ 
+                name: 'profile', 
+                params: { 
+                  username: article.author.username 
+                }
+              }">{{ article.author.username }}</nuxt-link>
+                <span class="date">{{ article.createdAt | date('MMM DD, YYYY') }}</span>
               </div>
-              <button class="btn btn-outline-primary btn-sm pull-xs-right">
-                <i class="ion-heart"></i> 29
+              <button class="btn btn-outline-primary btn-sm pull-xs-right" 
+                :class="{ active: article.favorited }"
+                @click="onFavorite(article)"
+                :disabled="article.favoriteDisabled"
+              >
+                <i class="ion-heart"></i> {{ article.favoritesCount }}
               </button>
             </div>
-            <a href="" class="preview-link">
-              <h1>How to build webapps that scale</h1>
-              <p>This is the description for the post.</p>
+            <nuxt-link :to="{
+              name: 'article',
+              params: {
+                slug: article.slug
+              }
+            }" class="preview-link">
+              <h1>{{ article.title }}</h1>
+              <p>{{ article.description }}</p>
               <span>Read more...</span>
-            </a>
+            </nuxt-link>
           </div>
-  
-          <div class="article-preview">
-            <div class="article-meta">
-              <a href="profile.html"><img src="http://i.imgur.com/N4VcUeJ.jpg" /></a>
-              <div class="info">
-                <a href="" class="author">Albert Pai</a>
-                <span class="date">January 20th</span>
-              </div>
-              <button class="btn btn-outline-primary btn-sm pull-xs-right">
-                <i class="ion-heart"></i> 32
-              </button>
-            </div>
-            <a href="" class="preview-link">
-              <h1>The song you won't ever stop singing. No matter how hard you try.</h1>
-              <p>This is the description for the post.</p>
-              <span>Read more...</span>
-            </a>
-          </div>
+
+          <nav>
+            <ul class="pagination">
+              <li class="page-item" :class="{ active: page === item }"  v-for="item in totalPage" :key="item">
+                <nuxt-link :to="{
+                  name: 'home',
+                  query: {
+                    page: item,
+                    tag,
+                    tab
+                  }
+                }" class="page-link">{{ item }}</nuxt-link>
+              </li>
+            </ul>
+          </nav>
   
         </div>
-  
+
         <div class="col-md-3">
           <div class="sidebar">
             <p>Popular Tags</p>
   
             <div class="tag-list">
-              <a href="" class="tag-pill tag-default">programming</a>
-              <a href="" class="tag-pill tag-default">javascript</a>
-              <a href="" class="tag-pill tag-default">emberjs</a>
-              <a href="" class="tag-pill tag-default">angularjs</a>
-              <a href="" class="tag-pill tag-default">react</a>
-              <a href="" class="tag-pill tag-default">mean</a>
-              <a href="" class="tag-pill tag-default">node</a>
-              <a href="" class="tag-pill tag-default">rails</a>
+              <template v-for="tag in tags">
+                <nuxt-link :to="{
+                  name: 'home',
+                  query: {
+                    tag,
+                    tab: 'tag'
+                  }
+                }" class="tag-pill tag-default" v-if="tag" :key="tag">
+                  {{ tag }}
+                </nuxt-link>
+              </template>
             </div>
           </div>
         </div>
@@ -87,75 +124,137 @@
 <script>
 
 // 导入的其他文件 例如：import moduleName from 'modulePath';
+import { getArticles, getYourFeedArticles, addFavorite, deleteFavorite } from '@@/api/article'
+import { getTags } from '@@/api/tag'
+import removeZeroWidthChar from '@@/utils/removeZeroWidthChar'
+import { mapState } from 'vuex'
 
 export default {
-name: 'HomePage',
-// import所引入的组件注册
-components: {
+  name: 'HomePage',
+  // asyncData返回的对象会被自动与data函数返回的对象合并
+  async asyncData ({ query, store }) {
+    // 获取URL中的查询字符串page参数
+    const page = Number.parseInt(query.page) || 1
+    const limit = 10
+    const tab = query.tab || 'global_feed'
+    const tag = query.tag
+    const loadArticles = tab === 'your_feed'? getYourFeedArticles: getArticles
+    const [ articleRes, tagRes ] = await Promise.all([
+      loadArticles({
+        limit: limit,
+        offset: (page - 1) * limit,
+        tag: tag
+      }),
+      getTags()
+    ])
+    const { articles, articlesCount } = articleRes.data
+    // 给article增加一个favoriteDisabled属性，用来表征点赞按钮是否被禁用
+    // 因为在点赞后，如果网络不好的话，会导致点赞状态更新慢，用户以为没有点成功，会多点几次，造成状态混乱
+    articles.forEach(article => article.favoriteDisabled = false)
+    let { tags } = tagRes.data
+    // tags返回的并不是数组，首先需要将其转换为数组，然后内部元素可能是8204这种零宽字符（隐藏字符，浏览器不打印这种字符）
+    // 将隐藏字符过滤后返回
+    tags = Array.from(tags).filter(tag => tag.charCodeAt(0) < 8203 || tag.charCodeAt(0) > 8207)
+    // 将tags中包含零宽字符的元素去掉其中的零宽字符
+    tags = tags.map(tag => removeZeroWidthChar(tag))
+    // 去除重复元素
+    tags = Array.from(new Set(tags))
+    return {
+      articles,
+      articlesCount,
+      limit,
+      page,
+      tags,
+      tag,
+      tab
+    }
+  },
+  watchQuery: ['page', 'tag', 'tab'],
+  // import所引入的组件注册
+  components: {
 
-},
+  },
 
-data() {
-  return {
+  data() {
+    return {
 
-  };
-},
+    };
+  },
 
-// 计算属性
-computed: {
+  // 计算属性
+  computed: {
+    totalPage () {
+      // 总的页数，遍历总的页数得到所有页码
+      return Math.ceil(this.articlesCount / this.limit)
+    },
+    ...mapState(['user'])
+  },
 
-},
+  // 监控data中的数据变化
+  watch: {
 
-// 监控data中的数据变化
-watch: {
+  },
 
-},
+  // 方法集合
+  methods: {
+    // 点赞和取消点赞
+    async onFavorite (article) {
+      // 点赞请求开始前，让按钮禁用
+      article.favoriteDisabled = true
+      if (article.favorited) {
+        await deleteFavorite(article.slug)
+        article.favorited = false
+        article.favoritesCount -= 1
+      } else {
+        await addFavorite(article.slug)
+        article.favorited = true
+        article.favoritesCount += 1
+      }
+      // 请求结束后，回复按钮
+      article.favoriteDisabled = false
+    }
+  },
 
-// 方法集合
-methods: {
+  // 生命周期 - 组件实例刚被创建
+  beforeCreate() { 
 
-},
+  },
+  //创建完成 访问当前this实例
+  created() {
 
-// 生命周期 - 组件实例刚被创建
-beforeCreate() { 
+  },
+  // 挂载之前
+  beforeMount() { 
 
-},
-//创建完成 访问当前this实例
-created() {
+  },
+  // 挂载完成 访问DOM元素
+  mounted() {
 
-},
-// 挂载之前
-beforeMount() { 
+  },
+  // 更新之前
+  beforeUpdate() { 
 
-},
-// 挂载完成 访问DOM元素
-mounted() {
+  },
+  // 更新之后
+  updated() { 
 
-},
-// 更新之前
-beforeUpdate() { 
+  },
+  // for keep-alive 缓存功能，组件被激活时调用
+  activated() {
 
-},
-// 更新之后
-updated() { 
+  },
+  // for keep-alive 组件被移除时调用
+  deactivated() {
 
-},
-// for keep-alive 缓存功能，组件被激活时调用
-activated() {
+  },
+  // 组件销毁之前调用
+  beforeDestroy() {
 
-},
-// for keep-alive 组件被移除时调用
-deactivated() {
+  },
+  // 组件销毁之后调用
+  destroyed() {
 
-},
-// 组件销毁之前调用
-beforeDestroy() {
-
-},
-// 组件销毁之后调用
-destroyed() {
-
-},
+  },
 }
 </script>
 <style>

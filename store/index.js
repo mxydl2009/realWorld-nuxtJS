@@ -22,6 +22,7 @@ export const actions = {
   // 初始化vuex的数据以及传递数据给客户端使用
   nuxtServerInit ({ commit }, { req }) {
     let user = null
+    // 判断cookie是否随请求一起发送过来
     if (req.headers.cookie) {
       // 解析cookie得到一个JavaScript对象，但对象的键对应的值仍然是一个JSON字符串，需要调用JSON.parse
       const parsed = cookieparser.parse(req.headers.cookie)

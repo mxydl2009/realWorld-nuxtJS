@@ -1,4 +1,4 @@
-import request from '@@/utils/request'
+import { request } from '@@/plugins/request'
 
 // 用户登录的请求,传入请求体data，返回Promise
 export const login = data => {

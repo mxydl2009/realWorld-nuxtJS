@@ -53,5 +53,6 @@ module.exports = {
         }
       ])
     }
-  }
+  },
+  plugins: ['@@/plugins/request', '@@/plugins/date']
 }
