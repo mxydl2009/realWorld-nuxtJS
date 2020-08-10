@@ -1,5 +1,10 @@
 // nuxt.config.js配置nuxt
 module.exports = {
+  server: {
+    // 监听server的任意ip地址，而不只是localhost(127.0.0.1)和局域网ip,这样从公网访问服务器IP也能被监听到
+    host: '0.0.0.0',
+    port: 8000
+  },
   router: {
     // 自定义路由表
     linkActiveClass: 'active',

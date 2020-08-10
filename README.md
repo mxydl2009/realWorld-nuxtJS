@@ -91,7 +91,24 @@ nuxt的热更新有时候会有问题，需要重新刷新浏览器才能看到�
 
 ### 构建
 参考 https://zh.nuxtjs.org/guide/commands
+- `nuxt build`命令，利用webpack编译应用，压缩文件, 将构建结果放在.nuxt目录和.nuxt/dist目录
+- `nuxt start`命令，以生产模式启动一个web服务器（需要先执行`nuxt build`）
+- `nuxt generate`命令，依据路由配置，生成静态HTML文件（纯静态渲染）
 
+### 部署
+
+#### 简单部署
+- 配置服务端的host和port
+  - 在nuxt.config.js中配置server字段, host和port分别默认是localhost和3000，需要根据实际情况修改
+- 压缩发布包
+  - .nuxt目录、static目录、nuxt.config.js文件、package.json和package-lock.json文件，这些目录和文件需要上传服务器，先进行gzip压缩
+- 把发布包传到服务端
+  - FTP
+  - Git
+  - Linux的SCP命令:
+- 解压发布包
+- 安装依赖
+- 启动服务
 
 ## 问题记录
 
@@ -99,3 +116,5 @@ nuxt的热更新有时候会有问题，需要重新刷新浏览器才能看到�
 根据实践情况，顺序感觉应该像是: 服务端asyncData -> 服务端nuxtServerInit -> 客户端asyncData
 
 ### 2. 在文章详情页中，使用了v-html将article的body属性包含的Markdown语法转换为HTML语法并显示在页面，这里包含了潜在风险，但如何进行安全方面的处理？
+
+### 3. 在首页使用路由切换时，asyncData函数会被调用，而且虽然页面不会重新加载，但会有一个加载线条出现，这是什么原因？spa会出现这样的现象吗？
