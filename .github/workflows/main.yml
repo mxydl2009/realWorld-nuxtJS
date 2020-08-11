@@ -10,7 +10,7 @@ on:
 jobs:
   build-and-deploy:
     # 运行环境
-    runs-on: centos-latest
+    runs-on: [self-hosted, linux]
     # 任务的步骤
     steps:
 
