@@ -105,10 +105,23 @@ nuxt的热更新有时候会有问题，需要重新刷新浏览器才能看到�
 - 把发布包传到服务端
   - FTP
   - Git
-  - Linux的SCP命令:
+  - Linux的SCP命令: `scp 当前压缩包路径 远程主机压缩包路径`，将当前的压缩包放到远程主机的某个路径
 - 解压发布包
 - 安装依赖
 - 启动服务
+  - 启动服务时，可以直接采用npm start的方式，但这种方式下，node进程占用了shell，导致shell无法关闭，也无法退出远程登录
+  - 后台启动服务：
+    - 采用 `nohup npm start &`的方式启动，然后可以exit命令退出登录状态
+    - 使用pm2包来启动node后台服务，全局安装`npm install pm2 -g`，使用`pm2 start npm -- start`命令启动后台服务，使用`pm2 stop id`关闭服务（这里的id是pm2管理进程时生成的id，不是系统给进程分配的id）
+
+##### pm2包管理node服务
+pm2常用命令
+- `pm2 list`：查看应用列表
+- `pm2 start`：启动应用
+- `pm2 stop`: 停止应用 
+- `pm2 reload`: 重载应用, 重载和重启的区别在于，重载会保留至少一个进程激活的情况下，一个一个重启进程，kill原进程
+- `pm2 restart`: 重启应用，先kill原有进程，再启动
+- `pm2 delete`: 删除应用
 
 ## 问题记录
 
