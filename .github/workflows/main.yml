@@ -64,4 +64,4 @@ jobs:
           wget https://github.com/mxydl2009/realWorld-nuxtJS/releases/latest/download/release.tgz -O release.tgz
           tar zxvf release.tgz
           npm install --production
-          pm2 reload pm2.config.js
+          pm2 reload pm2.config.json
