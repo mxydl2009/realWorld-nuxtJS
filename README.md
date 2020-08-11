@@ -135,23 +135,23 @@ CI/CD方式实现自动部署
 ##### GitHub Actions实现自动部署
 前置条件：Linux服务器 + 上传GitHub
 - 配置Github Access Token: 身份验证，用来使用GitHub API，操作GitHub仓库做CI
- - 生成：https://github.com/settings/tokens,
-  - 选择generate new token, 在note中填写token名称(token名称有命名规则，最好不要有连字符)
-  - 在select scopes中选择权限设置，这里勾选repo, 表示token的操作权限是仓库
- - 配置到项目的Settings/Secrets中: https://github.com/mxydl2009/realWorld-nuxtJS/settings/secrets
-  - 点击new Secret
-   - name填写token的name
-   - value填写token的值
+  - 生成：https://github.com/settings/tokens,
+    - 选择generate new token, 在note中填写token名称(token名称有命名规则，最好不要有连字符)
+    - 在select scopes中选择权限设置，这里勾选repo, 表示token的操作权限是仓库
+  - 配置到项目的Settings/Secrets中: https://github.com/mxydl2009/realWorld-nuxtJS/settings/secrets
+    - 点击new Secret
+     - name填写token的name
+     - value填写token的值
 - 配置GitHub Actions执行脚本
- - 在项目根目录创建.github/workflows目录
- - workflows目录下创建main.yml, main.yml为Github Action的执行脚本
- - 在仓库的Secrets中创建new Secret，配置远程服务器的主机IP、用户登录名和密码以及登录用的端口号，这些信息每一个都需要配置一个secret
-  - ssh连接登录服务默认端口号22
- - 修改PM2的配置文件pm2.config.json
- - 提交更新
- - 查看自动部署状态
- - 访问网站
- - 提交更新
+  - 在项目根目录创建.github/workflows目录
+  - workflows目录下创建main.yml, main.yml为Github Action的执行脚本
+  - 在仓库的Secrets中创建new Secret，配置远程服务器的主机IP、用户登录名和密码以及登录用的端口号，这些信息每一个都需要配置一个secret
+    - ssh连接登录服务默认端口号22
+  - 修改PM2的配置文件pm2.config.json
+  - 提交更新
+  - 查看自动部署状态
+  - 访问网站
+  - 提交更新
 
 ## 问题记录
 
