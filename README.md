@@ -159,8 +159,16 @@ CI/CD方式实现自动部署
 
 ## 问题记录
 
-### 1. 当直接在浏览器地址栏输入 http://localhost:3000/?tab=your_feed 时，会发生未认证请求的错误，错误码401原因在于store中的user为null。store中有一个特殊的action叫nuxtServerInit函数用来将请求中携带的cookie转换并存储到store.state.user, 而在home/index.vue的asyncData中发送请求时，拦截器中的user却为null，也就是说，cookie到底是什么时候存储到state.user中的？
-根据实践情况，顺序感觉应该像是: 服务端asyncData -> 服务端nuxtServerInit -> 客户端asyncData
+### 1. 当直接在浏览器地址栏输入 http://localhost:3000/?tab=your_feed 时，会发生未认证请求的错误，错误码401
+- 原因在于store中的user为null。
+  - store中有一个特殊的action叫nuxtServerInit函数用来将请求中携带的cookie转换并存储到store.state.user
+  - 在插件中配置请求拦截器时，如果store中user已经初始化，那么就会给所有请求配置拦截器，统一携带user.token身份标识
+  - 在home/index.vue的asyncData中发送请求时，实际上并未有请求拦截器，因为插件函数先于nuxtServerInit函数执行，此时user还没有初始化，所以没有配置拦截器
+- 这样就造成，在服务端的asyncData函数中，所有的后端API调用请求，都不会携带user.token身份标识
+- 但为什么客户端的API请求就会自动携带user.token身份标识呢？
+调用顺序: 插件 -> 服务端nuxtServerInit -> 服务端asyncData
+
+如果无法在页面刷新或者重新请求时，asyncData发出的请求不携带token的情况下，是无法保持状态的，这里就会出现bug，比如在页面中点赞，然后刷新页面，刷新页面时服务端开始asyncData，但此时没有携带token，会造成之前用户的点赞状态的消失，只有在客户端重新asyncData请求时才会恢复之前的点赞状态。
 
 ### 2. 在文章详情页中，使用了v-html将article的body属性包含的Markdown语法转换为HTML语法并显示在页面，这里包含了潜在风险，但如何进行安全方面的处理？
 
