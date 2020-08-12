@@ -69,3 +69,14 @@ export const deleteArticleComment = (slug, id) => {
     url: `/api/articles/${slug}/comments/${id}`
   })
 }
+
+// 发表文章
+export const createArticle = (article) => {
+  return request({
+    method: 'post',
+    url: `/api/articles`,
+    data: {
+      article
+    }
+  })
+}
