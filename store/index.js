@@ -1,5 +1,7 @@
 // 加载服务端渲染时，解析cookie的包
 const cookieparser = process.server? require('cookieparser'): undefined
+const Cookie = process.client? require('js-cookie'): undefined
+import { updateUser } from '@@/api/user'
 
 // 服务端渲染期间运行都是同一个实例
 // state必须是一个函数，为了防止多个请求共享同一份数据导致的数据冲突
@@ -14,6 +16,18 @@ export const mutations = {
   // 修改用户状态
   setUser (state, payload) {
     state.user = payload
+  },
+  updateUserInfo (state, payload) {
+    state.user = Object.assign({}, state.user, payload)
+    if (Cookie) {
+      // 客户端执行操作cookie代码
+      Cookie.set('user', state.user)
+    }
+  },
+  // 清空user数据
+  cleanUser (state) {
+    state.user = null
+    Cookie.remove('user')
   }
 }
 
@@ -34,5 +48,10 @@ export const actions = {
       }
     }
     commit('setUser', user)
+  },
+  async updateUserState ({ commit }, payload) {
+    const { data } = await updateUser(payload)
+    commit('updateUserInfo', data.user)
+    return data.user
   }
 }

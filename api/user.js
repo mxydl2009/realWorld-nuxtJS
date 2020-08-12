@@ -35,3 +35,14 @@ export const unFollow = (username) => {
     url: `/api/profiles/${username}/follow`
   })
 }
+
+// 用户更新资料
+export const updateUser = (user) => {
+  return request({
+    method: 'put',
+    url: `/api/user`,
+    data: {
+      user
+    }
+  })
+}

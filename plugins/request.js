@@ -18,7 +18,8 @@ export default ({ store, req }) => {
   // 所以需要进行解析
   if (!user) {
     // 判断cookie是否随请求一起发送过来
-    if (req.headers.cookie) {
+    // 由于插件会在服务端和客户端各运行一次，所以在客户端中不存在req属性，这里需要对req属性做一次判断
+    if (req && req.header && req.headers.cookie) {
       // 解析cookie得到一个JavaScript对象，但对象的键对应的值仍然是一个JSON字符串，需要调用JSON.parse
       const parsed = cookieparser.parse(req.headers.cookie)
       try {
