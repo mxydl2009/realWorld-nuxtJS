@@ -26,6 +26,7 @@ export default ({ store, req }) => {
         user = JSON.parse(parsed.user)
       } catch (err) {
         // No valid cookie found
+        user = null
       }
     }
   }
