@@ -179,3 +179,11 @@ CI/CD方式实现自动部署
 ### 4. 在asyncData中请求文章列表数据，与在客户端mounted生命周期方法中请求同一个接口数据，文章的favorited属性不一致
 在asyncData中请求到的所有文章的favorited属性永远都是false,但favoritesCount属性正确
 在客户端请求时，则一切都是正确的
+
+### 5. route更新后，asyncData重新调用，数据重新获取到了，但页面组件却没有用新数据重新渲染?检查页面的data，发现仍然是旧数据
+在pages/profile的index.vue页面组件中，使用asyncData方法获取数据，渲染组件。
+  - 当路由为/profile/:username时，渲染My Articles文章列表；
+  - 当路由为/profile/:username/favorites时，渲染Favorited Articles文章列表
+但是在点击<nuxt-link></nuxt-link>实际切换路由时，例如从/profile/:username切换到/profile/:username/favorites时，通过查看返回数据发现数据的确是返回了新的，但查看组件树发现组件的data却没有得到更新，导致视图没有更新。
+但在多次切换（一般第二次切换）时，组件的data却又会更新为新数据，视图也随之更新。
+为什么asyncData返回的新数据没有和组件的data融合，从而更新data呢?
