@@ -228,8 +228,24 @@ export default {
 
   },
   // 挂载完成 访问DOM元素
-  mounted() {
-
+  async mounted() {
+    const query = this.$route.query
+    const page = Number.parseInt(query.page) || 1
+    const limit = 10
+    const tab = query.tab || 'global_feed'
+    const tag = query.tag
+    const loadArticles = tab === 'your_feed'? getYourFeedArticles: getArticles
+    const [ articleRes, tagRes ] = await Promise.all([
+      loadArticles({
+        limit: limit,
+        offset: (page - 1) * limit,
+        tag: tag
+      }),
+      getTags()
+    ])
+    const { articles, articlesCount } = articleRes.data
+    articles.forEach(article => article.favoriteDisabled = false)
+    this.articles = articles
   },
   // 更新之前
   beforeUpdate() { 

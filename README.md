@@ -177,8 +177,10 @@ CI/CD方式实现自动部署
 ### 3. 在首页使用路由切换时，asyncData函数会被调用，而且虽然页面不会重新加载，但会有一个加载线条出现，这是什么原因？spa会出现这样的现象吗？
 
 ### 4. 在asyncData中请求文章列表数据，与在客户端mounted生命周期方法中请求同一个接口数据，文章的favorited属性不一致
-在asyncData中请求到的所有文章的favorited属性永远都是false,但favoritesCount属性正确
-在客户端请求时，则一切都是正确的
+服务端asyncData请求得到的文章favorited属性与客户端请求得到的不一致，而且客户端请求得到的是正确的
+- 在asyncData中请求到的所有文章的favorited属性永远都是false,但favoritesCount属性正确
+- 在客户端请求时，则一切都是正确的
+
 
 ### 5. route更新后，asyncData重新调用，数据重新获取到了，但页面组件却没有用新数据重新渲染?检查页面的data，发现仍然是旧数据
 - 在pages/profile的index.vue页面组件中，使用asyncData方法获取数据，渲染组件。

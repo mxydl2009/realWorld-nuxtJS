@@ -61,8 +61,7 @@ export default {
     article.favoriteDisabled = false
     article.author.followDisabled = false
     return {
-      article,
-      articlePage: true
+      article
     }
   },
   // import所引入的组件注册
@@ -147,8 +146,16 @@ export default {
 
   },
   // 挂载完成 访问DOM元素
-  mounted() {
-
+  async mounted() {
+    const { data } = await getArticle(this.$route.params.slug)
+    const { article } = data
+    // 实例化一个MarkdownIt
+    const md = new MarkdownIt()
+    // 调用MarkdownIt.prototype.render方法，将Markdown语法转换为HTML语法
+    article.body = md.render(article.body)
+    article.favoriteDisabled = false
+    article.author.followDisabled = false
+    this.article = article
   },
   // 更新之前
   beforeUpdate() { 
