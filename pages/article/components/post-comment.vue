@@ -2,7 +2,10 @@
 <template>
   <form class="card comment-form" @submit="postComment">
     <div class="card-block">
-      <textarea v-model="comment" class="form-control" placeholder="Write a comment..." rows="3"></textarea>
+      <textarea v-model="comment" class="form-control" 
+        placeholder="Write a comment..." rows="3"
+        @blur="$emit('not-editing')"
+        ></textarea>
     </div>
     <div class="card-footer">
       <img :src="user.image" class="comment-author-img" />

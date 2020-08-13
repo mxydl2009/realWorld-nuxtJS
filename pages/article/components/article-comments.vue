@@ -6,7 +6,7 @@
 
     <div class="card" v-for="comment in comments" :key="comment.id">
       <template v-if="comment.isEditing">
-        <post-comment :slug="article.slug" v-on:postComment="onPostComment" :body="comment.body" />
+        <post-comment :slug="article.slug" v-on:postComment="onPostComment" :body="comment.body" @not-editing="comment.isEditing=false" />
       </template>
       <template v-else>
         <div class="card-block">
