@@ -7,16 +7,19 @@
       <div class="row">
 
         <div class="col-xs-12 col-md-10 offset-md-1">
-          <img src="http://i.imgur.com/Qr71crq.jpg" class="user-img" />
-          <h4>Eric Simons</h4>
+          <img :src="user.image" class="user-img" />
+          <h4>{{ user.username }}</h4>
           <p>
-            Cofounder @GoThinkster, lived in Aol's HQ for a few months, kinda looks like Peeta from the Hunger Games
+            {{ user.bio }}
           </p>
-          <button class="btn btn-sm btn-outline-secondary action-btn">
-            <i class="ion-plus-round"></i>
-            &nbsp;
-            Follow Eric Simons 
-          </button>
+          <nuxt-link class="btn btn-sm btn-outline-secondary action-btn"
+            :to="{
+              name: 'settings'
+            }"
+          >
+            <i class="ion-gear-a"></i>
+            Edit Profile Settings
+          </nuxt-link>
         </div>
 
       </div>
@@ -30,55 +33,29 @@
         <div class="articles-toggle">
           <ul class="nav nav-pills outline-active">
             <li class="nav-item">
-              <a class="nav-link active" href="">My Articles</a>
+              <nuxt-link class="nav-link" :to="{
+                path: `/profile/${user.username}`
+              }"
+              exact 
+              >My Articles
+            </nuxt-link>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="">Favorited Articles</a>
+              <nuxt-link class="nav-link" :to="{
+                path: `/profile/${user.username}`,
+                query: {
+                  favorites: 'favorites'
+                }
+              }"
+              exact
+              >Favorited Articles</nuxt-link>
             </li>
           </ul>
         </div>
 
-        <div class="article-preview">
-          <div class="article-meta">
-            <a href=""><img src="http://i.imgur.com/Qr71crq.jpg" /></a>
-            <div class="info">
-              <a href="" class="author">Eric Simons</a>
-              <span class="date">January 20th</span>
-            </div>
-            <button class="btn btn-outline-primary btn-sm pull-xs-right">
-              <i class="ion-heart"></i> 29
-            </button>
-          </div>
-          <a href="" class="preview-link">
-            <h1>How to build webapps that scale</h1>
-            <p>This is the description for the post.</p>
-            <span>Read more...</span>
-          </a>
-        </div>
-
-        <div class="article-preview">
-          <div class="article-meta">
-            <a href=""><img src="http://i.imgur.com/N4VcUeJ.jpg" /></a>
-            <div class="info">
-              <a href="" class="author">Albert Pai</a>
-              <span class="date">January 20th</span>
-            </div>
-            <button class="btn btn-outline-primary btn-sm pull-xs-right">
-              <i class="ion-heart"></i> 32
-            </button>
-          </div>
-          <a href="" class="preview-link">
-            <h1>The song you won't ever stop singing. No matter how hard you try.</h1>
-            <p>This is the description for the post.</p>
-            <span>Read more...</span>
-            <ul class="tag-list">
-              <li class="tag-default tag-pill tag-outline">Music</li>
-              <li class="tag-default tag-pill tag-outline">Song</li>
-            </ul>
-          </a>
-        </div>
-
-
+          <article-intro v-for="article in articles" :article="article" :key="article.slug" 
+          @favorite="onFavorite(article)" :btnDisabled="article.favoriteDisabled" />
+        
       </div>
 
     </div>
@@ -90,14 +67,38 @@
 <script>
 
 // 导入的其他文件 例如：import moduleName from 'modulePath';
+import { mapState } from 'vuex'
+import { getArticles, addFavorite, deleteFavorite } from '@@/api/article'
+import ArticleIntro from '@@/pages/profile/components/article-intro'
 
 export default {
     // 配置页面所需的middleware
   middleware: ['authenticated'],
   name: 'Profile',
+  async asyncData ({ store, query }) {
+    const page = Number.parseInt(query.page) || 1
+    const limit = 10
+    const username = store.state.user.username
+    const params = {
+      limit,
+      offset: (page - 1) * limit
+    }
+    if (query.favorites === 'favorites') {
+      params.favorited = username
+    } else {
+      params.author = username
+    }
+    const { data } = await getArticles(params)
+    const articles = data.articles
+    articles.forEach(article => article.favoriteDisabled = false)
+    return {
+      articles
+    }
+  },
+  watchQuery: ['favorites'],
   // import所引入的组件注册
   components: {
-
+    ArticleIntro
   },
 
   data() {
@@ -108,7 +109,7 @@ export default {
 
   // 计算属性
   computed: {
-
+    ...mapState(['user'])
   },
 
   // 监控data中的数据变化
@@ -118,7 +119,21 @@ export default {
 
   // 方法集合
   methods: {
-
+    async onFavorite (article) {
+      // 点赞请求开始前，让按钮禁用
+      article.favoriteDisabled = true
+      if (article.favorited) {
+        const { data } = await deleteFavorite(article.slug)
+        article.favorited = data.article.favorited
+        article.favoritesCount = data.article.favoritesCount
+      } else {
+        const { data } = await addFavorite(article.slug)
+        article.favorited = data.article.favorited
+        article.favoritesCount = data.article.favoritesCount
+      }
+      // 请求结束后，回复按钮
+      article.favoriteDisabled = false
+    }
   },
 
   // 生命周期 - 组件实例刚被创建
@@ -134,8 +149,22 @@ export default {
 
   },
   // 挂载完成 访问DOM元素
-  mounted() {
-
+  async mounted() {
+    const page = Number.parseInt(this.$route.query.page) || 1
+    const limit = 10
+    const username = this.user.username
+    const params = {
+      limit,
+      offset: (page - 1) * limit
+    }
+    if (this.$route.query.favorites === 'favorites') {
+      params.favorited = username
+    } else {
+      params.author = username
+    }
+    const { data } = await getArticles(params)
+    const articles = data.articles
+    this.articles = articles
   },
   // 更新之前
   beforeUpdate() { 

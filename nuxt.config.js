@@ -38,6 +38,7 @@ module.exports = {
               path: '/profile/:username',
               name: 'profile',
               component: resolve(__dirname, 'pages/profile/')
+              
             },
             {
               path: '/settings',

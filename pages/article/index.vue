@@ -61,7 +61,8 @@ export default {
     article.favoriteDisabled = false
     article.author.followDisabled = false
     return {
-      article
+      article,
+      articlePage: true
     }
   },
   // import所引入的组件注册
@@ -72,7 +73,6 @@ export default {
 
   data() {
     return {
-
     };
   },
   head () {

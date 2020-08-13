@@ -21,21 +21,22 @@
       <span class="date">{{ article.createdAt | date('MMM DD, YYYY') }}</span>
     </div>
 
-    <button class="btn btn-sm btn-outline-secondary" :class="{ active: article.author.following }"
-      @click="$emit('follow')" :disabled="followDisabled"
-    >
-      <i class="ion-plus-round"></i>
+      <button class="btn btn-sm btn-outline-secondary" :class="{ active: article.author.following }"
+        @click="$emit('follow')" :disabled="followDisabled"
+      >
+        <i class="ion-plus-round"></i>
+        &nbsp;
+        Follow {{ article.author.username }} <span class="counter">(10)</span>
+      </button>
       &nbsp;
-      Follow {{ article.author.username }} <span class="counter">(10)</span>
-    </button>
-    &nbsp;
-    <button class="btn btn-sm btn-outline-primary" :class="{ active: article.favorited }"
-      @click="$emit('favorite')" :disabled="articleDisabled"
-    >
-      <i class="ion-heart"></i>
-      &nbsp;
-      Favorite Post <span class="counter">({{ article.favoritesCount }})</span>
-    </button>
+      <button class="btn btn-sm btn-outline-primary" :class="{ active: article.favorited }"
+        @click="$emit('favorite')" :disabled="articleDisabled"
+      >
+        <i class="ion-heart"></i>
+        &nbsp;
+        Favorite Post <span class="counter">({{ article.favoritesCount }})</span>
+      </button>
+
   </div>
 </template>
 
@@ -53,11 +54,11 @@ export default {
     },
     articleDisabled: {
       type: Boolean,
-      required: true
+      required: false
     },
     followDisabled: {
       type: Boolean,
-      required: true
+      required: false
     }
   },
   // import所引入的组件注册
