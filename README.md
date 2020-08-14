@@ -1,5 +1,7 @@
 # realWorld-nuxtJS
 
+访问网址：http://123.57.242.82:8000/
+
 ## 对项目结构的说明
 
 ### app.html
@@ -103,7 +105,7 @@ nuxt的热更新有时候会有问题，需要重新刷新浏览器才能看到�
 - 配置服务端的host和port
   - 在nuxt.config.js中配置server字段, host和port分别默认是localhost和3000，需要根据实际情况修改
 - 压缩发布包
-  - .nuxt目录、static目录、nuxt.config.js文件、package.json和package-lock.json文件，这些目录和文件需要上传服务器，先进行gzip压缩
+  - .nuxt目录、static目录、nuxt.config.js文件、package.json和package-lock.json文件，以及可能的pm2.config.json文件，这些目录和文件需要上传服务器，先进行gzip压缩
 - 把发布包传到服务端
   - FTP
   - Git
