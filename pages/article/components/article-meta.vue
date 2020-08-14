@@ -21,6 +21,7 @@
       <span class="date">{{ article.createdAt | date('MMM DD, YYYY') }}</span>
     </div>
 
+    <template v-if="user? user.username !== article.author.username: true">
       <button class="btn btn-sm btn-outline-secondary" :class="{ active: article.author.following }"
         @click="$emit('follow')" :disabled="followDisabled"
       >
@@ -36,6 +37,25 @@
         &nbsp;
         Favorite Post <span class="counter">({{ article.favoritesCount }})</span>
       </button>
+    </template>
+
+    <template v-else>
+      <button class="btn btn-sm btn-outline-secondary"
+        @click="$emit('edit-article')"
+      >
+        <i class="ion-edit"></i>
+        &nbsp;
+        Edit Article
+      </button>
+      &nbsp;
+      <button class="btn btn-sm btn-outline-danger"
+        @click="$emit('delete-article')"
+      >
+        <i class="ion-trash-a"></i>
+        &nbsp;
+        Delete Article
+      </button>
+    </template>
 
   </div>
 </template>
@@ -44,6 +64,7 @@
 
 // 导入的其他文件 例如：import moduleName from 'modulePath';
 import { addFavorite, deleteFavorite } from '@@/api/article'
+import { mapState } from 'vuex'
 
 export default {
   name: 'ArticleMeta',
@@ -74,7 +95,7 @@ export default {
 
   // 计算属性
   computed: {
-    
+    ...mapState(['user'])
   },
  
   // 监控data中的数据变化

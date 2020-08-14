@@ -8,6 +8,7 @@
         <h1>How to build webapps that scale</h1>
 
         <article-meta :article="article" @favorite="onFavorite(article)" @follow="onFollow(article.author)"
+          @edit-article="onEditArticle" @delete-article="onDeleteArticle"
           :articleDisabled="article.favoriteDisabled" :followDisabled="article.author.followDisabled" />
 
       </div>
@@ -24,6 +25,7 @@
 
       <div class="article-actions">
         <article-meta :article="article" @favorite="onFavorite(article)" @follow="onFollow(article.author)"
+          @edit-article="onEditArticle" @delete-article="onDeleteArticle"
           :articleDisabled="article.favoriteDisabled" :followDisabled="article.author.followDisabled" />
       </div>
 
@@ -43,7 +45,7 @@
 <script>
 
 // 导入的其他文件 例如：import moduleName from 'modulePath';
-import { getArticle } from '@@/api/article'
+import { getArticle, deleteArticle } from '@@/api/article'
 import { follow, unFollow } from '@@/api/user'
 import MarkdownIt from 'markdown-it'
 import ArticleMeta from '@@/pages/article/components/article-meta'
@@ -119,6 +121,17 @@ export default {
       }
       // 请求结束后，回复按钮
       author.followDisabled = false
+    },
+    async onDeleteArticle () {
+      await deleteArticle(this.article.slug)
+      this.$router.replace({
+        name: 'home'
+      })
+    },
+    onEditArticle () {
+      this.$router.push({
+        path: `/editor/${this.article.slug}`
+      })
     }
   },
 

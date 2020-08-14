@@ -5,7 +5,7 @@
     <div class="row">
 
       <div class="col-md-10 offset-md-1 col-xs-12">
-        <form @submit="publishArticle">
+        <form @submit="onSubmit">
           <fieldset>
             <fieldset class="form-group">
                 <input required v-model="article.title" type="text" class="form-control form-control-lg" placeholder="Article Title">
@@ -34,7 +34,7 @@
 <script>
 
 // 导入的其他文件 例如：import moduleName from 'modulePath';
-import { createArticle } from '@@/api/article'
+import { getArticle, createArticle, updateArticle } from '@@/api/article'
 
 export default {
   // 配置页面所需的middleware
@@ -53,7 +53,8 @@ export default {
         body: '',
         tags: ''
       },
-      publishing: false
+      publishing: false,
+      create: true
     };
   },
 
@@ -69,8 +70,11 @@ export default {
 
   // 方法集合
   methods: {
-    async publishArticle (event) {
+    onSubmit (event) {
       event.preventDefault()
+      this.create === true? this.publishArticle(): this.updateTheArticle()
+    },
+    async publishArticle () {
       this.publishing = true
       // 先对article属性进行整理
       let tags = this.article.tags
@@ -95,6 +99,18 @@ export default {
           slug: data.article.slug
         }
       })
+    },
+    async updateTheArticle () {
+      this.publishing = true
+      const { data } = await updateArticle(this.$route.params.slug, this.article)
+      this.publishing = false
+      const newArticle = data.article
+      this.$router.push({
+        name: 'article',
+        params: {
+          slug: newArticle.slug
+        }
+      })
     }
   },
 
@@ -111,8 +127,18 @@ export default {
 
   },
   // 挂载完成 访问DOM元素
-  mounted() {
-
+  async mounted() {
+    if (this.$route.params.slug) {
+      const { data } = await getArticle(this.$route.params.slug)
+      const article = data.article
+      console.log(article)
+      Object.keys(this.article).forEach(key => {
+        if (article[key]) {
+          this.article[key] = article[key]
+        }
+      })
+      this.create = false
+    }
   },
   // 更新之前
   beforeUpdate() { 

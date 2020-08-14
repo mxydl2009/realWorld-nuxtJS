@@ -80,3 +80,22 @@ export const createArticle = (article) => {
     }
   })
 }
+
+// 删除用户自己的文章
+export const deleteArticle = (slug) => {
+  return request({
+    method: 'delete',
+    url: `/api/articles/${slug}`
+  })
+}
+
+// 更新用户已发表文章
+export const updateArticle = (slug, article) =>{
+  return request({
+    method: 'put',
+    url: `/api/articles/${slug}`,
+    data: {
+      article
+    }
+  })
+}
