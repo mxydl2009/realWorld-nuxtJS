@@ -41,9 +41,42 @@ export const getArticle = slug => {
   })
 }
 
+// 获取文章评论列表
 export const getArticleComments = slug => {
   return request({
     method: 'get',
     url: `/api/articles/${slug}/comments`
+  })
+}
+
+// 用户增加对文章的评论
+export const postArticleComment = (slug, comment) => {
+  return request({
+    method: 'post',
+    url: `/api/articles/${slug}/comments`,
+    data: {
+      comment: {
+        body: comment
+      }
+    }
+  })
+}
+
+// 删除用户对文章评论
+export const deleteArticleComment = (slug, id) => {
+  return request({
+    method: 'delete',
+    url: `/api/articles/${slug}/comments/${id}`
+  })
+}
+
+// 发表文章
+export const createArticle = (article) => {
+  return request({
+    method: 'post',
+    url: `/api/articles`,
+    data: {
+      article
+    }
   })
 }

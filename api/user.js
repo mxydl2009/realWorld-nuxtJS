@@ -19,3 +19,30 @@ export const register = data => {
     data
   })
 }
+
+// 用户关注另一个用户
+export const follow = (username) => {
+  return request({
+    method: 'post',
+    url: `/api/profiles/${username}/follow`
+  })
+}
+
+// 用户取消关注另一个用户
+export const unFollow = (username) => {
+  return request({
+    method: 'delete',
+    url: `/api/profiles/${username}/follow`
+  })
+}
+
+// 用户更新资料
+export const updateUser = (user) => {
+  return request({
+    method: 'put',
+    url: `/api/user`,
+    data: {
+      user
+    }
+  })
+}

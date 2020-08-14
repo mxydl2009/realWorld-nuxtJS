@@ -5,21 +5,21 @@
     <div class="row">
 
       <div class="col-md-10 offset-md-1 col-xs-12">
-        <form>
+        <form @submit="publishArticle">
           <fieldset>
             <fieldset class="form-group">
-                <input type="text" class="form-control form-control-lg" placeholder="Article Title">
+                <input required v-model="article.title" type="text" class="form-control form-control-lg" placeholder="Article Title">
             </fieldset>
             <fieldset class="form-group">
-                <input type="text" class="form-control" placeholder="What's this article about?">
+                <input required v-model="article.description" type="text" class="form-control" placeholder="What's this article about?">
             </fieldset>
             <fieldset class="form-group">
-                <textarea class="form-control" rows="8" placeholder="Write your article (in markdown)"></textarea>
+                <textarea required v-model="article.body" class="form-control" rows="8" placeholder="Write your article (in markdown)"></textarea>
             </fieldset>
             <fieldset class="form-group">
-                <input type="text" class="form-control" placeholder="Enter tags"><div class="tag-list"></div>
+                <input v-model="article.tags" type="text" class="form-control" placeholder="Enter tags, please split the tags with comma"><div class="tag-list"></div>
             </fieldset>
-            <button class="btn btn-lg pull-xs-right btn-primary" type="button">
+            <button class="btn btn-lg pull-xs-right btn-primary" type="submit" :disabled="publishing" >
                 Publish Article
             </button>
           </fieldset>
@@ -34,6 +34,7 @@
 <script>
 
 // 导入的其他文件 例如：import moduleName from 'modulePath';
+import { createArticle } from '@@/api/article'
 
 export default {
   // 配置页面所需的middleware
@@ -46,7 +47,13 @@ export default {
 
   data() {
     return {
-
+      article: {
+        title: '',
+        description: '',
+        body: '',
+        tags: ''
+      },
+      publishing: false
     };
   },
 
@@ -62,7 +69,33 @@ export default {
 
   // 方法集合
   methods: {
-
+    async publishArticle (event) {
+      event.preventDefault()
+      this.publishing = true
+      // 先对article属性进行整理
+      let tags = this.article.tags
+      let tagList = []
+      if (tags !== '') {
+        tagList = tags.split(',').map(tag => tag.trim())
+      }
+      let article = {}
+      // 初始化article
+      Object.keys(this.article).forEach(key => {
+        if (key === 'tags') {
+          article['tagList'] = tagList
+        } else {
+          article[key] = this.article[key]
+        }
+      })
+      const { data } = await createArticle(article)
+      this.publishing = false
+      this.$router.push({
+        name: 'article',
+        params: {
+          slug: data.article.slug
+        }
+      })
+    }
   },
 
   // 生命周期 - 组件实例刚被创建

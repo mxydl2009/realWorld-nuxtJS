@@ -7,7 +7,8 @@
 
         <h1>How to build webapps that scale</h1>
 
-        <article-meta :article="article" />
+        <article-meta :article="article" @favorite="onFavorite(article)" @follow="onFollow(article.author)"
+          :articleDisabled="article.favoriteDisabled" :followDisabled="article.author.followDisabled" />
 
       </div>
     </div>
@@ -22,7 +23,8 @@
       <hr />
 
       <div class="article-actions">
-        <article-meta :article="article" />
+        <article-meta :article="article" @favorite="onFavorite(article)" @follow="onFollow(article.author)"
+          :articleDisabled="article.favoriteDisabled" :followDisabled="article.author.followDisabled" />
       </div>
 
       <div class="row">
@@ -42,19 +44,23 @@
 
 // 导入的其他文件 例如：import moduleName from 'modulePath';
 import { getArticle } from '@@/api/article'
+import { follow, unFollow } from '@@/api/user'
 import MarkdownIt from 'markdown-it'
 import ArticleMeta from '@@/pages/article/components/article-meta'
 import ArticleComments from '@@/pages/article/components/article-comments'
+import favoriteManipulate from '@@/utils/onFavorite'
 
 export default {
   name: 'Article',
-  async asyncData ({ params }) {
+  async asyncData ({ params, store }) {
     const { data } = await getArticle(params.slug)
     const { article } = data
     // 实例化一个MarkdownIt
     const md = new MarkdownIt()
     // 调用MarkdownIt.prototype.render方法，将Markdown语法转换为HTML语法
     article.body = md.render(article.body)
+    article.favoriteDisabled = false
+    article.author.followDisabled = false
     return {
       article
     }
@@ -67,7 +73,6 @@ export default {
 
   data() {
     return {
-
     };
   },
   head () {
@@ -95,7 +100,26 @@ export default {
 
   // 方法集合
   methods: {
-
+    // 点赞和取消点赞
+    onFavorite (article) {
+      favoriteManipulate(article)
+    },
+    // 关注和取消关注
+    async onFollow (author) {
+      // 点赞请求开始前，让按钮禁用
+      author.followDisabled = true
+      if (author.following) {
+        await unFollow(author.username)
+        author.following = false
+        // author.following -= 1
+      } else {
+        await follow(author.username)
+        author.following = true
+        // article.favoritesCount += 1
+      }
+      // 请求结束后，回复按钮
+      author.followDisabled = false
+    }
   },
 
   // 生命周期 - 组件实例刚被创建
@@ -111,8 +135,16 @@ export default {
 
   },
   // 挂载完成 访问DOM元素
-  mounted() {
-
+  async mounted() {
+    const { data } = await getArticle(this.$route.params.slug)
+    const { article } = data
+    // 实例化一个MarkdownIt
+    const md = new MarkdownIt()
+    // 调用MarkdownIt.prototype.render方法，将Markdown语法转换为HTML语法
+    article.body = md.render(article.body)
+    article.favoriteDisabled = false
+    article.author.followDisabled = false
+    this.article = article
   },
   // 更新之前
   beforeUpdate() { 

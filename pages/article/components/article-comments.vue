@@ -1,46 +1,42 @@
 <!--  -->
 <template>
   <div>
-    <form class="card comment-form">
-      <div class="card-block">
-        <textarea class="form-control" placeholder="Write a comment..." rows="3"></textarea>
-      </div>
-      <div class="card-footer">
-        <img :src="user.image" class="comment-author-img" />
-        <button class="btn btn-sm btn-primary">
-          Post Comment
-        </button>
-      </div>
-    </form>
+
+    <post-comment :slug="article.slug" v-on:postComment="onPostComment" />
 
     <div class="card" v-for="comment in comments" :key="comment.id">
-      <div class="card-block">
-        <p class="card-text">{{ comment.body }}</p>
-      </div>
-      <div class="card-footer">
-        <nuxt-link :to="{
-          name: 'profile',
-          params: {
-            username: comment.author.username
-          }
-        }" class="comment-author">
-          <img :src="comment.author.image" class="comment-author-img" />
-        </nuxt-link>
-        &nbsp;
-        <nuxt-link :to="{
-          name: 'profile',
-          params: {
-            username: comment.author.username
-          }
-        }" class="comment-author">
-          {{ comment.author.username }}
-        </nuxt-link>
-        <span class="date-posted">{{ comment.createdAt | date('MMM DD, YYYY') }}</span>
-        <span class="mod-options" v-if="comment.author.username === user.username">
-          <i class="ion-edit"></i>
-          <i class="ion-trash-a"></i>
-        </span>
-      </div>
+      <template v-if="comment.isEditing">
+        <post-comment :slug="article.slug" v-on:postComment="onPostComment" :body="comment.body" @not-editing="comment.isEditing=false" />
+      </template>
+      <template v-else>
+        <div class="card-block">
+          <p class="card-text">{{ comment.body }}</p>
+        </div>
+        <div class="card-footer">
+          <nuxt-link :to="{
+            name: 'profile',
+            params: {
+              username: comment.author.username
+            }
+          }" class="comment-author">
+            <img :src="comment.author.image" class="comment-author-img" />
+          </nuxt-link>
+          &nbsp;
+          <nuxt-link :to="{
+            name: 'profile',
+            params: {
+              username: comment.author.username
+            }
+          }" class="comment-author">
+            {{ comment.author.username }}
+          </nuxt-link>
+          <span class="date-posted">{{ comment.createdAt | date('MMM DD, YYYY') }}</span>
+          <span class="mod-options" v-if="comment.author.username === user.username">
+            <i class="ion-edit" @click="editComment(comment.id, comment.isEditing)"></i>
+            <i class="ion-trash-a" @click="deleteComment(comment.id)"></i>
+          </span>
+        </div>
+      </template>
     </div>
 
   </div>
@@ -49,8 +45,9 @@
 <script>
 
 // 导入的其他文件 例如：import moduleName from 'modulePath';
-import { getArticleComments } from '@@/api/article'
+import { getArticleComments, postArticleComment, deleteArticleComment } from '@@/api/article'
 import { mapState } from 'vuex'
+import PostComment from '@@/pages/article/components/post-comment'
 
 export default {
   name: 'ArticleComments',
@@ -62,12 +59,16 @@ export default {
   },
   // import所引入的组件注册
   components: {
-    
+    PostComment
   },
   // comments不需要SEO优化，所以在客户端，挂载到DOM时加载comments
   async mounted () {
     const { data } = await getArticleComments(this.article.slug)
     this.comments = data.comments
+    this.comments.forEach(comment => {
+      // 使用vm.$set()方法来添加响应式属性
+      this.$set(comment, 'isEditing', false)
+    })
   },
 
   data() {
@@ -88,7 +89,18 @@ export default {
 
   // 方法集合
   methods: {
-    
+    onPostComment (comment) {
+      this.comments.shift(comment)
+    },
+    async deleteComment (id) {
+      await deleteArticleComment(this.article.slug, id)
+      this.comments = this.comments.filter(comment => comment.id !== id)
+    },
+    // 由于没有提供更新评论的接口，所以这里使用了增加评论的接口
+    editComment (id, isEditing) {
+      const comment = this.comments.find(comment => comment.id === id)
+      comment.isEditing = !isEditing
+    }
   },
 
   // 生命周期 - 组件实例刚被创建
