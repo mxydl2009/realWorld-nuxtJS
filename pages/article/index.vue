@@ -43,11 +43,12 @@
 <script>
 
 // 导入的其他文件 例如：import moduleName from 'modulePath';
-import { getArticle, addFavorite, deleteFavorite } from '@@/api/article'
+import { getArticle } from '@@/api/article'
 import { follow, unFollow } from '@@/api/user'
 import MarkdownIt from 'markdown-it'
 import ArticleMeta from '@@/pages/article/components/article-meta'
 import ArticleComments from '@@/pages/article/components/article-comments'
+import favoriteManipulate from '@@/utils/onFavorite'
 
 export default {
   name: 'Article',
@@ -100,20 +101,8 @@ export default {
   // 方法集合
   methods: {
     // 点赞和取消点赞
-    async onFavorite (article) {
-      // 点赞请求开始前，让按钮禁用
-      article.favoriteDisabled = true
-      if (article.favorited) {
-        await deleteFavorite(article.slug)
-        article.favorited = false
-        article.favoritesCount -= 1
-      } else {
-        await addFavorite(article.slug)
-        article.favorited = true
-        article.favoritesCount += 1
-      }
-      // 请求结束后，回复按钮
-      article.favoriteDisabled = false
+    onFavorite (article) {
+      favoriteManipulate(article)
     },
     // 关注和取消关注
     async onFollow (author) {

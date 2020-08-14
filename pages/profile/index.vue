@@ -85,8 +85,9 @@
 
 // 导入的其他文件 例如：import moduleName from 'modulePath';
 import { mapState } from 'vuex'
-import { getArticles, addFavorite, deleteFavorite } from '@@/api/article'
+import { getArticles } from '@@/api/article'
 import ArticleIntro from '@@/pages/profile/components/article-intro'
+import favoriteManipulate from '@@/utils/onFavorite'
 
 export default {
     // 配置页面所需的middleware
@@ -149,20 +150,8 @@ export default {
 
   // 方法集合
   methods: {
-    async onFavorite (article) {
-      // 点赞请求开始前，让按钮禁用
-      article.favoriteDisabled = true
-      if (article.favorited) {
-        const { data } = await deleteFavorite(article.slug)
-        article.favorited = data.article.favorited
-        article.favoritesCount = data.article.favoritesCount
-      } else {
-        const { data } = await addFavorite(article.slug)
-        article.favorited = data.article.favorited
-        article.favoritesCount = data.article.favoritesCount
-      }
-      // 请求结束后，回复按钮
-      article.favoriteDisabled = false
+    onFavorite (article) {
+      favoriteManipulate(article)
     }
   },
 
