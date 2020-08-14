@@ -48,6 +48,9 @@
                 }
               }"
               exact
+              :class="{
+                active: favorites === 'favorites'
+              }"
               >Favorited Articles</nuxt-link>
             </li>
           </ul>
@@ -55,6 +58,20 @@
 
           <article-intro v-for="article in articles" :article="article" :key="article.slug" 
           @favorite="onFavorite(article)" :btnDisabled="article.favoriteDisabled" />
+
+          <nav>
+            <ul class="pagination">
+              <li class="page-item" :class="{ active: page === item }"  v-for="item in totalPage" :key="item">
+                <nuxt-link :to="{
+                  name: 'profile',
+                  query: {
+                    page: item,
+                    favorites: favorites
+                  }
+                }" class="page-link">{{ item }}</nuxt-link>
+              </li>
+            </ul>
+          </nav>
         
       </div>
 
@@ -77,7 +94,7 @@ export default {
   name: 'Profile',
   async asyncData ({ store, query }) {
     const page = Number.parseInt(query.page) || 1
-    const limit = 10
+    const limit = 3
     const username = store.state.user.username
     const params = {
       limit,
@@ -90,12 +107,21 @@ export default {
     }
     const { data } = await getArticles(params)
     const articles = data.articles
+    const articlesCount = data.articlesCount
     articles.forEach(article => article.favoriteDisabled = false)
-    return {
-      articles
+    const result = {
+      articles,
+      articlesCount,
+      page,
+      limit,
+      favorites: undefined
     }
+    if (query.favorites === 'favorites') {
+      result.favorites = 'favorites'
+    }
+    return result
   },
-  watchQuery: ['favorites'],
+  watchQuery: ['favorites', 'page'],
   // import所引入的组件注册
   components: {
     ArticleIntro
@@ -109,7 +135,11 @@ export default {
 
   // 计算属性
   computed: {
-    ...mapState(['user'])
+    ...mapState(['user']),
+    totalPage () {
+      // 总的页数，遍历总的页数得到所有页码
+      return Math.ceil(this.articlesCount / this.limit)
+    }
   },
 
   // 监控data中的数据变化
@@ -150,14 +180,15 @@ export default {
   },
   // 挂载完成 访问DOM元素
   async mounted() {
-    const page = Number.parseInt(this.$route.query.page) || 1
-    const limit = 10
+    const query = this.$route.query
+    const page = Number.parseInt(query.page) || 1
+    const limit = 3
     const username = this.user.username
     const params = {
       limit,
       offset: (page - 1) * limit
     }
-    if (this.$route.query.favorites === 'favorites') {
+    if (query.favorites === 'favorites') {
       params.favorited = username
     } else {
       params.author = username
