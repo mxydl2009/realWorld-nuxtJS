@@ -8,14 +8,8 @@ const baseUrl = 'https://conduit.productionready.io/'
 // 创建请求对象，避免使用同一个请求对象污染全局环境，只有SSR才需要这样处理
 export const request = axios.create({
   baseURL: baseUrl,
-  timeout: 1500,
-  retry: 3,
-  retryDelay: 1000
+  timeout: 1500
 })
-// request.defaults.retry = 3
-// request.defaults.retryDelay = 1000
-
-// console.dir(request.defaults)
 
 // 通过插件机制，获取上下文context对象，从而拿到vuex的store
 // 插件可以导出一个函数，这个函数必须作为default成员
@@ -46,7 +40,6 @@ export default ({ store, req }) => {
       return config
     }, function (err) {
       // 请求在没有经过网络进程发出去就失败了，会调用这个函数，比如取消请求
-      console.log('request fail: ', err)
       return Promise.rejecte(err)
     })
   }
@@ -57,8 +50,8 @@ export default ({ store, req }) => {
   }, function axiosRetryInterceptor(err) {
     // 保存原始请求的配置对象
     const config = err.config;
-    console.dir(err)
     // 当配置对象不存在或retry属性不存在，则说明err.config不存在，则直接拒绝
+    // 只有在真正请求时传入的配置对象config上添加了retry字段时，这里的config才包含retry属性
     if(!config || !config.retry) return Promise.reject(err);
     
     // 添加__retryCount属性来记录重复发送请求的次数
