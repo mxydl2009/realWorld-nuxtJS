@@ -86,7 +86,7 @@ nuxt的热更新有时候会有问题，需要重新刷新浏览器才能看到�
 ### 解析时间日期字符串的包day.js
 
 ### markdown-it包
-文章正文内容支持Markdown语法，将Markdown语法转换为HTML语法输出
+文章正文内容支持Markdown语法，将Markdown语法转换为HTML语法输出, 并且MarkdownIt.prototype.render方法可以将特殊字符进行转义，防止XSS攻击
 
 ### 定制页面的<head>标签内容和<meta>标签内容，包括<title>标签内容，这样有利于优化SEO
 - 针对特定页面的个性化定制，需要在页面组件中定义head() {} 方法来实现
@@ -159,4 +159,5 @@ CI/CD方式实现自动部署
     - 选择仓库的Actions选项卡查看
   - 访问网站
   - 提交更新
+
 
