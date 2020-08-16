@@ -6,7 +6,18 @@
   "scripts": {
     "dev": "nuxt",
     "build": "nuxt build",
-    "start": "nuxt start"
+    "start": "nuxt start",
+    "commit": "git-cz"
+  },
+  "config": {
+    "commitizen": {
+      "path": "node_modules/cz-conventional-changelog"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
   },
   "repository": {
     "type": "git",
@@ -20,11 +31,18 @@
   },
   "homepage": "https://github.com/mxydl2009/realWorld-nuxtJS#readme",
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.20.0-0",
     "cookieparser": "^0.1.0",
     "dayjs": "^1.8.32",
     "js-cookie": "^2.2.1",
     "markdown-it": "^11.0.0",
     "nuxt": "^2.14.1"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^9.1.2",
+    "@commitlint/config-conventional": "^9.1.2",
+    "commitizen": "^4.1.2",
+    "cz-conventional-changelog": "^3.2.0",
+    "husky": "^4.2.5"
   }
 }
