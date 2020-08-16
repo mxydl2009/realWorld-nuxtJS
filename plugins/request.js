@@ -8,7 +8,9 @@ const baseUrl = 'https://conduit.productionready.io/'
 // 创建请求对象，避免使用同一个请求对象污染全局环境，只有SSR才需要这样处理
 export const request = axios.create({
   baseURL: baseUrl,
-  timeout: 1500
+  timeout: 1500,
+  retry: 3,
+  retryDelay: 1000
 })
 
 // 通过插件机制，获取上下文context对象，从而拿到vuex的store
@@ -54,29 +56,32 @@ export default ({ store, req }) => {
     // 只有在真正请求时传入的配置对象config上添加了retry字段时，这里的config才包含retry属性
     if(!config || !config.retry) return Promise.reject(err);
     
-    // 添加__retryCount属性来记录重复发送请求的次数
-    config.__retryCount = config.__retryCount || 0;
-    
-    // 判断是否超过了最大重复请求次数，如果是，则拒绝, 用来防止持续不断地重复请求导致栈溢出
-    if(config.__retryCount >= config.retry) {
-        // Reject with the error
-        return Promise.reject(err);
+    if(error.code == 'ECONNABORTED' && error.message.indexOf('timeout') != -1 && config._retry) {
+      // 添加__retryCount属性来记录重复发送请求的次数
+      config.__retryCount = config.__retryCount || 0;
+
+      // 判断是否超过了最大重复请求次数，如果是，则拒绝
+      if(config.__retryCount >= config.retry) {
+          // Reject with the error
+          return Promise.reject(err);
+      }
+
+      // 增加重复请求次数记录器的数值
+      config.__retryCount += 1;
+
+      // Create new promise to handle exponential backoff
+      var backoff = new Promise(function(resolve) {
+          setTimeout(function() {
+              resolve();
+          }, config.retryDelay || 1);
+      });
+
+      // Return the promise in which recalls axios to retry the request
+      return backoff.then(function() {
+          return axios(config);
+      });
     }
-    
-    // 增加重复请求次数记录器的数值
-    config.__retryCount += 1;
-    
-    // Create new promise to handle exponential backoff
-    var backoff = new Promise(function(resolve) {
-        setTimeout(function() {
-            resolve();
-        }, config.retryDelay || 1);
-    });
-    
-    // Return the promise in which recalls axios to retry the request
-    return backoff.then(function() {
-        return request(config);
-    });
-})
+    return Promise.reject(err)
+  })
 }
 
